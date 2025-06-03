@@ -34,15 +34,14 @@ build() {
 
   sudo rsync -aAXHv --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found","/home/*/.cache/*"} / "$WORKDIR/pockOS/airootfs"
 
-  echo "[+] Copying /home/jas to /home/public in airootfs ..."
-  sudo rm -rf "$WORKDIR/pockOS/airootfs/home/public"
-  sudo rsync -aAXHv /home/jas/ "$WORKDIR/pockOS/airootfs/home/public"
+  echo "[+] Copying /home/jas to /home/private in airootfs ..."
+  sudo rm -rf "$WORKDIR/pockOS/airootfs/home/private"
+  sudo rsync -aAXHv /home/jas/ "$WORKDIR/pockOS/airootfs/home/private"
 
-  # Fix ownership inside airootfs so public user owns home dir
-  sudo chown -R 1000:1000 "$WORKDIR/pockOS/airootfs/home/public"
+  # Fix ownership inside airootfs so private user owns home dir
+  sudo chown -R 1000:1000 "$WORKDIR/pockOS/airootfs/home/private"
 
   echo "[+] Starting pockOS ISO build..."
-  # Run mkarchiso build
   sudo mkarchiso -v -w "$WORKDIR/pockOS/work" -o "$WORKDIR/pockOS/out" "$WORKDIR/pockOS"
 
   echo "[+] Build complete. ISO is here:"
