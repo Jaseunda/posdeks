@@ -27,10 +27,16 @@ if ! id "${USERNAME}" &> /dev/null; then
 fi
 
 ### 3. SYSTEM UPDATE & PACKAGE INSTALLATION ###
-echo "Updating system and installing packages..."
-pacman -Sy --noconfirm
+echo
+echo "=== Updating system & installing packages ==="
 
-# Core desktop packages
+# Fully update the system first
+echo "Running: pacman -Syu --noconfirm"
+pacman -Syu --noconfirm
+
+# Now install all necessary desktop packages
+echo
+echo "Installing desktop packages..."
 pacman -S --noconfirm \
   networkmanager \
   pipewire pipewire-pulse wireplumber \
@@ -44,14 +50,14 @@ pacman -S --noconfirm \
   papirus-icon-theme \
   ttf-iosevka ttf-jetbrains-mono \
   qt5ct qt6ct gnome-themes-extra \
-  swaylock-effects \
   wofi \
   grim slurp pamixer pavucontrol-qt
 
-echo "Packages installed."
+echo "Package installation complete."
 
 ### 4. ENABLE SERVICES ###
-echo "Enabling critical services..."
+echo
+echo "=== Enabling critical services ==="
 systemctl enable NetworkManager.service
 systemctl enable dbus.service
 systemctl enable pipewire.service
@@ -61,12 +67,14 @@ systemctl enable lightdm.service
 echo "Services enabled."
 
 ### 5. CREATE USER CONFIG DIRECTORIES ###
-echo "Creating configuration directories for ${USERNAME}..."
+echo
+echo "=== Creating configuration directories for ${USERNAME} ==="
 runuser -l "${USERNAME}" -c 'mkdir -p ~/.config/hypr ~/.config/waybar ~/.config/eww ~/.config/mako ~/.config/kitty ~/.config/qt5ct ~/.config/gtk-3.0 ~/.icons ~/.themes ~/Pictures/Screenshots'
 echo "Directories created."
 
 ### 6. WRITE HYPRLAND CONFIGURATION ###
-echo "Writing ~/.config/hypr/hyprland.conf..."
+echo
+echo "=== Writing ~/.config/hypr/hyprland.conf ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/hypr/hyprland.conf << "EOF"
 # ============== Hyprland General ==============
 monitor=*,1920x1080,1.0,0x0
@@ -120,7 +128,8 @@ EOF'
 echo "Hyprland config written."
 
 ### 7. WRITE WAYBAR CONFIG & STYLE ###
-echo "Writing ~/.config/waybar/config..."
+echo
+echo "=== Writing ~/.config/waybar/config and style.css ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/waybar/config << "EOF"
 {
   "layer": "top",
@@ -171,7 +180,6 @@ runuser -l "${USERNAME}" bash -c 'cat > ~/.config/waybar/config << "EOF"
 }
 EOF'
 
-echo "Writing ~/.config/waybar/style.css..."
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/waybar/style.css << "EOF"
 /* Waybar macOS-style theming */
 * {
@@ -200,7 +208,8 @@ EOF'
 echo "Waybar config & style written."
 
 ### 8. WRITE EWW DOCK CONFIG ###
-echo "Writing ~/.config/eww/dock.yml..."
+echo
+echo "=== Writing ~/.config/eww/dock.yml ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/eww/dock.yml << "EOF"
 # eww "dock" widget for Hyprland
 windows:
@@ -258,7 +267,8 @@ EOF'
 echo "Eww dock config written."
 
 ### 9. WRITE KITTY CONFIGURATION ###
-echo "Writing ~/.config/kitty/kitty.conf..."
+echo
+echo "=== Writing ~/.config/kitty/kitty.conf ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/kitty/kitty.conf << "EOF"
 # Kitty — macOS-style transparent terminal
 
@@ -285,7 +295,8 @@ EOF'
 echo "Kitty config written."
 
 ### 10. WRITE MAKO CONFIGURATION ###
-echo "Writing ~/.config/mako/config..."
+echo
+echo "=== Writing ~/.config/mako/config ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/mako/config << "EOF"
 # Mako notifications (macOS-style)
 monitor=*
@@ -308,7 +319,8 @@ EOF'
 echo "Mako config written."
 
 ### 11. WRITE GTK & QT THEME SETTINGS ###
-echo "Writing GTK settings..."
+echo
+echo "=== Writing GTK & QT theme settings ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/gtk-3.0/settings.ini << "EOF"
 [Settings]
 gtk-theme-name = WhiteSur-Dark
@@ -319,7 +331,6 @@ gtk-cursor-theme-size = 24
 gtk-toolbar-style = GTK_TOOLBAR_BOTH_HORIZ
 EOF'
 
-echo "Writing QT5CT settings..."
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/qt5ct/qt5ct.conf << "EOF"
 [Appearance]
 style=Adwaita
@@ -335,7 +346,8 @@ EOF'
 echo "GTK & QT settings written."
 
 ### 12. INSTALL WHITE SUR GTK THEME (OPTIONAL) ###
-echo "Installing WhiteSur GTK theme (optional)..."
+echo
+echo "=== Installing WhiteSur GTK theme (optional) ==="
 runuser -l "${USERNAME}" bash -c 'bash -c "
   cd /tmp
   if [ ! -d WhiteSur-gtk-theme ]; then
@@ -347,8 +359,10 @@ runuser -l "${USERNAME}" bash -c 'bash -c "
 echo "WhiteSur theme installed."
 
 ### 13. SET OWNERSHIP OF USER CONFIGS ###
-echo "Setting ownership of ~/.config, ~/.icons, ~/.themes for ${USERNAME}..."
+echo
+echo "=== Setting ownership of ~/.* for ${USERNAME} ==="
 chown -R "${USERNAME}":"${USERNAME}" "${USERHOME}/.config" "${USERHOME}/.icons" "${USERHOME}/.themes" "${USERHOME}/Pictures/Screenshots"
+echo "Ownership set."
 
 ### 14. FINAL MESSAGE ###
 echo
