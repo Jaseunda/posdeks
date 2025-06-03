@@ -16,18 +16,14 @@ if ! ping -c 1 archlinux.org &> /dev/null; then
 fi
 echo "Internet OK."
 
-### 2. VARIABLES & FALLBACKS ###
-# Change this if your regular user is named differently.
+### 2. VARIABLES (ASSUME USER ALREADY EXISTS) ###
 USERNAME="pockuser"
 USERHOME="/home/${USERNAME}"
 
-# If the user doesn't exist, create them and add to wheel group.
+# Verify that the user exists; abort if not.
 if ! id "${USERNAME}" &> /dev/null; then
-  echo "User '${USERNAME}' does not exist. Creating user..."
-  useradd -m -G wheel -s /bin/bash "${USERNAME}"
-  echo "Please set the password for ${USERNAME}:"
-  passwd "${USERNAME}"
-  sed -i 's/^# \(%wheel ALL=(ALL) ALL\)/\1/' /etc/sudoers
+  echo "ERROR: User '${USERNAME}' does not exist. Please create the user first and retry."
+  exit 1
 fi
 
 ### 3. SYSTEM UPDATE & PACKAGE INSTALLATION ###
@@ -48,7 +44,9 @@ pacman -S --noconfirm \
   papirus-icon-theme \
   ttf-iosevka ttf-jetbrains-mono \
   qt5ct qt6ct gnome-themes-extra \
-  swaylock-effects
+  swaylock-effects \
+  wofi \
+  grim slurp pamixer pavucontrol-qt
 
 echo "Packages installed."
 
@@ -64,7 +62,7 @@ echo "Services enabled."
 
 ### 5. CREATE USER CONFIG DIRECTORIES ###
 echo "Creating configuration directories for ${USERNAME}..."
-runuser -l "${USERNAME}" -c 'mkdir -p ~/.config/hypr ~/.config/waybar ~/.config/eww ~/.config/mako ~/.config/kitty ~/.config/qt5ct ~/.config/gtk-3.0 ~/.icons ~/.themes'
+runuser -l "${USERNAME}" -c 'mkdir -p ~/.config/hypr ~/.config/waybar ~/.config/eww ~/.config/mako ~/.config/kitty ~/.config/qt5ct ~/.config/gtk-3.0 ~/.icons ~/.themes ~/Pictures/Screenshots'
 echo "Directories created."
 
 ### 6. WRITE HYPRLAND CONFIGURATION ###
@@ -350,12 +348,12 @@ echo "WhiteSur theme installed."
 
 ### 13. SET OWNERSHIP OF USER CONFIGS ###
 echo "Setting ownership of ~/.config, ~/.icons, ~/.themes for ${USERNAME}..."
-chown -R "${USERNAME}":"${USERNAME}" "${USERHOME}/.config" "${USERHOME}/.icons" "${USERHOME}/.themes"
+chown -R "${USERNAME}":"${USERNAME}" "${USERHOME}/.config" "${USERHOME}/.icons" "${USERHOME}/.themes" "${USERHOME}/Pictures/Screenshots"
 
 ### 14. FINAL MESSAGE ###
 echo
 echo "================================================================"
 echo "Desktop environment installation and configuration complete!"
-echo " reboot now, log in as ${USERNAME}, choose the 'Hyprland' session."
-echo " Use Super (⌘) + D to toggle the dock, Super+Enter for Kitty, Super+L to lock, etc."
+echo "✓ Reboot now, log in as ${USERNAME}, and choose the 'Hyprland' session."
+echo "✓ Use Super (⌘) + D to toggle the dock, Super+Enter for Kitty, Super+L to lock, etc."
 echo "================================================================"
