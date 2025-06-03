@@ -9,7 +9,8 @@
 set -euo pipefail
 
 ### 1. CHECK INTERNET CONNECTIVITY ###
-echo "Checking internet connectivity..."
+echo
+echo "=== 1. Checking internet connectivity ==="
 if ! ping -c 1 archlinux.org &> /dev/null; then
   echo "ERROR: No internet connection detected. Please ensure networking is up and retry."
   exit 1
@@ -26,18 +27,23 @@ if ! id "${USERNAME}" &> /dev/null; then
   exit 1
 fi
 
-### 3. SYSTEM UPDATE & PACKAGE INSTALLATION ###
+### 3. INITIALIZE PACMAN KEYS (IF NEEDED) ###
 echo
-echo "=== Updating system & installing packages ==="
+echo "=== 2. Initializing pacman keyring ==="
+pacman-key --init
+pacman-key --populate archlinux
+echo "Pacman keyring populated."
 
-# Fully update the system first
-echo "Running: pacman -Syu --noconfirm"
-pacman -Syu --noconfirm
-
-# Now install all necessary desktop packages
+### 4. SYSTEM UPDATE ###
 echo
-echo "Installing desktop packages..."
-pacman -S --noconfirm \
+echo "=== 3. System update (pacman -Syu) ==="
+pacman -Syu --noconfirm --needed
+echo "System is up to date."
+
+### 5. INSTALL DESKTOP PACKAGES ###
+echo
+echo "=== 4. Installing desktop packages ==="
+pacman -S --noconfirm --needed \
   networkmanager \
   pipewire pipewire-pulse wireplumber \
   dbus \
@@ -52,12 +58,11 @@ pacman -S --noconfirm \
   qt5ct qt6ct gnome-themes-extra \
   wofi \
   grim slurp pamixer pavucontrol-qt
+echo "Desktop packages installed."
 
-echo "Package installation complete."
-
-### 4. ENABLE SERVICES ###
+### 6. ENABLE SERVICES ###
 echo
-echo "=== Enabling critical services ==="
+echo "=== 5. Enabling critical services ==="
 systemctl enable NetworkManager.service
 systemctl enable dbus.service
 systemctl enable pipewire.service
@@ -66,15 +71,15 @@ systemctl enable wireplumber.service
 systemctl enable lightdm.service
 echo "Services enabled."
 
-### 5. CREATE USER CONFIG DIRECTORIES ###
+### 7. CREATE USER CONFIG DIRECTORIES ###
 echo
-echo "=== Creating configuration directories for ${USERNAME} ==="
+echo "=== 6. Creating configuration directories for ${USERNAME} ==="
 runuser -l "${USERNAME}" -c 'mkdir -p ~/.config/hypr ~/.config/waybar ~/.config/eww ~/.config/mako ~/.config/kitty ~/.config/qt5ct ~/.config/gtk-3.0 ~/.icons ~/.themes ~/Pictures/Screenshots'
 echo "Directories created."
 
-### 6. WRITE HYPRLAND CONFIGURATION ###
+### 8. WRITE HYPRLAND CONFIGURATION ###
 echo
-echo "=== Writing ~/.config/hypr/hyprland.conf ==="
+echo "=== 7. Writing ~/.config/hypr/hyprland.conf ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/hypr/hyprland.conf << "EOF"
 # ============== Hyprland General ==============
 monitor=*,1920x1080,1.0,0x0
@@ -127,9 +132,9 @@ windowrulev2 = float,window_class:confirm
 EOF'
 echo "Hyprland config written."
 
-### 7. WRITE WAYBAR CONFIG & STYLE ###
+### 9. WRITE WAYBAR CONFIG & STYLE ###
 echo
-echo "=== Writing ~/.config/waybar/config and style.css ==="
+echo "=== 8. Writing ~/.config/waybar/config and style.css ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/waybar/config << "EOF"
 {
   "layer": "top",
@@ -207,9 +212,9 @@ runuser -l "${USERNAME}" bash -c 'cat > ~/.config/waybar/style.css << "EOF"
 EOF'
 echo "Waybar config & style written."
 
-### 8. WRITE EWW DOCK CONFIG ###
+### 10. WRITE EWW DOCK CONFIG ###
 echo
-echo "=== Writing ~/.config/eww/dock.yml ==="
+echo "=== 9. Writing ~/.config/eww/dock.yml ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/eww/dock.yml << "EOF"
 # eww "dock" widget for Hyprland
 windows:
@@ -266,9 +271,9 @@ styles:
 EOF'
 echo "Eww dock config written."
 
-### 9. WRITE KITTY CONFIGURATION ###
+### 11. WRITE KITTY CONFIGURATION ###
 echo
-echo "=== Writing ~/.config/kitty/kitty.conf ==="
+echo "=== 10. Writing ~/.config/kitty/kitty.conf ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/kitty/kitty.conf << "EOF"
 # Kitty — macOS-style transparent terminal
 
@@ -294,9 +299,9 @@ map cmd+shift+w close_window
 EOF'
 echo "Kitty config written."
 
-### 10. WRITE MAKO CONFIGURATION ###
+### 12. WRITE MAKO CONFIGURATION ###
 echo
-echo "=== Writing ~/.config/mako/config ==="
+echo "=== 11. Writing ~/.config/mako/config ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/mako/config << "EOF"
 # Mako notifications (macOS-style)
 monitor=*
@@ -318,9 +323,9 @@ font="Iosevka Nerd Font 11"
 EOF'
 echo "Mako config written."
 
-### 11. WRITE GTK & QT THEME SETTINGS ###
+### 13. WRITE GTK & QT THEME SETTINGS ###
 echo
-echo "=== Writing GTK & QT theme settings ==="
+echo "=== 12. Writing GTK & QT theme settings ==="
 runuser -l "${USERNAME}" bash -c 'cat > ~/.config/gtk-3.0/settings.ini << "EOF"
 [Settings]
 gtk-theme-name = WhiteSur-Dark
@@ -345,9 +350,9 @@ theme=Papirus
 EOF'
 echo "GTK & QT settings written."
 
-### 12. INSTALL WHITE SUR GTK THEME (OPTIONAL) ###
+### 14. INSTALL WHITE SUR GTK THEME (OPTIONAL) ###
 echo
-echo "=== Installing WhiteSur GTK theme (optional) ==="
+echo "=== 13. Installing WhiteSur GTK theme (optional) ==="
 runuser -l "${USERNAME}" bash -c 'bash -c "
   cd /tmp
   if [ ! -d WhiteSur-gtk-theme ]; then
@@ -358,13 +363,13 @@ runuser -l "${USERNAME}" bash -c 'bash -c "
 "'
 echo "WhiteSur theme installed."
 
-### 13. SET OWNERSHIP OF USER CONFIGS ###
+### 15. SET OWNERSHIP OF USER CONFIGS ###
 echo
-echo "=== Setting ownership of ~/.* for ${USERNAME} ==="
+echo "=== 14. Setting ownership of user configs ==="
 chown -R "${USERNAME}":"${USERNAME}" "${USERHOME}/.config" "${USERHOME}/.icons" "${USERHOME}/.themes" "${USERHOME}/Pictures/Screenshots"
 echo "Ownership set."
 
-### 14. FINAL MESSAGE ###
+### 16. FINAL MESSAGE ###
 echo
 echo "================================================================"
 echo "Desktop environment installation and configuration complete!"
