@@ -17,7 +17,7 @@ fi
 echo "Internet OK."
 
 ### 2. VARIABLES (ASSUME USER ALREADY EXISTS) ###
-USERNAME="pockuser"
+USERNAME="private"
 USERHOME="/home/${USERNAME}"
 
 # Verify that the user exists; abort if not.
